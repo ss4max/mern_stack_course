@@ -38,8 +38,10 @@ const createNewReservation = asyncHandler(async (req, res) => {
     // Hash password 
     // const hashedPwd = await bcrypt.hash(password, 10) // salt rounds
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+    const checkInDate = new Date(checkIn + " 14:00:00")
+    const checkOutDate = new Date(checkOut + " 12:00:00")
+
+    console.log(checkInDate + " " + checkOutDate)
 
     const reservationObject = { name, adults, children, checkInDate, checkOutDate, room, note, active }
 
@@ -79,8 +81,8 @@ const updateReservation = asyncHandler(async (req, res) => {
     //     return res.status(409).json({ message: 'Duplicate username' })
     // }
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+    const checkInDate = new Date(checkIn + "T014:00:00")
+    const checkOutDate = new Date(checkOut + "T012:00:00")
 
     reservation.name = name
     reservation.adults = adults
