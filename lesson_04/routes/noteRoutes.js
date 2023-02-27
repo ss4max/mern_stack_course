@@ -1,11 +1,11 @@
-const express = require('express')
-const router = express.Router()
-const notesController = require('../controllers/notesController')
+// const express = require('express')
+// const router = express.Router()
+// const reservationsController = require('../controllers/reservationsController')
 
-router.route('/')
-    .get(notesController.getAllNotes)
-    .post(notesController.createNewNote)
-    .patch(notesController.updateNote)
-    .delete(notesController.deleteNote)
+// router.route('/')
+//     .get(reservationsController.getAllNotes)
+//     .post(reservationsController.createNewNote)
+//     .patch(reservationsController.updateNote)
+//     .delete(reservationsController.deleteNote)
 
-module.exports = router
+// module.exports = router
