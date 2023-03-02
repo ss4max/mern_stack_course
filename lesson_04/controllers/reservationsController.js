@@ -2,6 +2,20 @@ const Reservation = require('../models/Reservation')
 const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcrypt')
 
+function addDays(date, days) {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+}
+
+function hasDate(dates, date) {
+
+    const found = dates.find(dateFound =>
+        dateFound.getDate() === date.getDate())
+
+    return found
+}
+
 // @desc Get all reservations
 // @route GET /reservations
 // @access Private
@@ -21,29 +35,29 @@ const getAllReservations = asyncHandler(async (req, res) => {
 // @route POST /reservation
 // @access Private
 const createNewReservation = asyncHandler(async (req, res) => {
-    const { name, adults, children, checkIn, checkOut, room, note, active } = req.body
+    const { name, adults, children, checkIn, nights, room, note, active } = req.body
 
     // Confirm data
-    if (!name || !adults || !checkIn || !checkOut || !room) {
+    if (!name || !adults || !checkIn || !nights || !room) {
         return res.status(400).json({ message: 'Name, how many adults and children, check in and check out dates, and room required.' })
     }
 
     // Check for duplicate reservation
-    // const duplicate = await Reservation.findOne({ name }).lean().exec()
+    const doubleBooked = await Reservation.findOne({ room }).lean().exec()
 
-    // if (duplicate) {
-    //     return res.status(409).json({ message: 'Duplicate username' })
-    // }
+    const checkInDate = new Date(checkIn + " 13:24:00");
+    let checkedInDates = [];
+    for (let i = 0; i <= nights; i++) {
+        checkedInDates.push(addDays(checkInDate, i))
+    }
 
-    // Hash password 
-    // const hashedPwd = await bcrypt.hash(password, 10) // salt rounds
+    checkedInDates.forEach(date => {
+        if (hasDate(room.checkedInDates, date)) {
+            return res.status(409).json({ message: 'Double booked room' })
+        }
+    });
 
-    const checkInDate = new Date(checkIn + " 14:00:00")
-    const checkOutDate = new Date(checkOut + " 12:00:00")
-
-    console.log(checkInDate + " " + checkOutDate)
-
-    const reservationObject = { name, adults, children, checkInDate, checkOutDate, room, note, active }
+    const reservationObject = { name, adults, children, checkInDate, checkedInDates, nights, room, note, active }
 
     // Create and store new reservation 
     const reservation = await Reservation.create(reservationObject)
@@ -59,7 +73,7 @@ const createNewReservation = asyncHandler(async (req, res) => {
 // @route PATCH /reservations
 // @access Private
 const updateReservation = asyncHandler(async (req, res) => {
-    const { id, name, adults, children, checkIn, checkOut, room, note, active } = req.body
+    const { id, name, adults, children, checkIn, nights, room, note, active } = req.body
 
     // Confirm data 
     if (!id) {
@@ -82,13 +96,12 @@ const updateReservation = asyncHandler(async (req, res) => {
     // }
 
     const checkInDate = new Date(checkIn + "T014:00:00")
-    const checkOutDate = new Date(checkOut + "T012:00:00")
 
     reservation.name = name
     reservation.adults = adults
     reservation.children = children
     reservation.checkIn = checkInDate
-    reservation.checkOut = checkOutDate
+    reservation.nights = nights
     reservation.room = room
     reservation.note = note
     reservation.active = active
