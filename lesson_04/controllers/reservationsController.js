@@ -1,5 +1,6 @@
 const Reservation = require('../models/Reservation')
 const asyncHandler = require('express-async-handler')
+const Room = require('../models/Room')
 const bcrypt = require('bcrypt')
 
 function addDays(date, days) {
@@ -11,7 +12,7 @@ function addDays(date, days) {
 function hasDate(dates, date) {
 
     const found = dates.find(dateFound =>
-        dateFound.getDate() === date.getDate())
+        dateFound.getTime() === date.getTime())
 
     return found
 }
@@ -35,34 +36,46 @@ const getAllReservations = asyncHandler(async (req, res) => {
 // @route POST /reservation
 // @access Private
 const createNewReservation = asyncHandler(async (req, res) => {
-    const { name, adults, children, checkIn, nights, room, note, active } = req.body
+    const { name, adults, children, checkInDate, nights, room, note, active } = req.body
 
     // Confirm data
-    if (!name || !adults || !checkIn || !nights || !room) {
-        return res.status(400).json({ message: 'Name, how many adults and children, check in and check out dates, and room required.' })
+    if (!name || !adults || !checkInDate || !nights || !room) {
+        return res.status(400).json({ message: 'Name, adults, check in date, nights, and room name required.' })
     }
 
-    // Check for duplicate reservation
-    const doubleBooked = await Reservation.findOne({ room }).lean().exec()
+    // Check for double booking
+    // const doubleBooked = await Reservation.findOne({ room }).lean().exec()
 
-    const checkInDate = new Date(checkIn + " 13:24:00");
     let checkedInDates = [];
     for (let i = 0; i <= nights; i++) {
         checkedInDates.push(addDays(checkInDate, i))
     }
 
-    checkedInDates.forEach(date => {
-        if (hasDate(room.checkedInDates, date)) {
-            return res.status(409).json({ message: 'Double booked room' })
-        }
-    });
+    const checkOutDate = checkedInDates.pop();
+    const roomModel = await Room.findOne({ roomName: room }).exec();
 
-    const reservationObject = { name, adults, children, checkInDate, checkedInDates, nights, room, note, active }
+    if (!roomModel) {
+        return res.status(400).json({ message: 'Room not found' })
+    }
+
+    if (roomModel.datesOccupied.length > 0) {
+        checkedInDates.forEach(date => {
+            if (hasDate(roomModel.datesOccupied, date)) {
+                return res.status(409).json({ message: 'Double booked room' })
+            }
+        })
+    }
+
+    roomModel.datesOccupied.push(...checkedInDates)
+
+    const updatedRoom = await roomModel.save()
+
+    const reservationObject = { name, adults, children, checkInDate, checkOutDate, checkedInDates, nights, room, note, active }
 
     // Create and store new reservation 
     const reservation = await Reservation.create(reservationObject)
 
-    if (reservation) { //created 
+    if (reservation && updatedRoom) { //created 
         res.status(201).json({ message: `New reservation for ${name} created` })
     } else {
         res.status(400).json({ message: 'Invalid reservation data received' })

@@ -1,6 +1,16 @@
 const Room = require('../models/Room')
-const User = require('../models/User')
 const asyncHandler = require('express-async-handler')
+
+// function removeDuplicateDates(dates) {
+//     let removedDuplicates = dates
+//         .map(function (date) { return date.getTime() })
+//         .filter(function (date, i, array) {
+//             return array.indexOf(date) === i;
+//         })
+//         .map(function (time) { return new Date(time); });
+
+//     return removedDuplicates
+// }
 
 // @desc Get all rooms 
 // @route GET /rooms
@@ -17,36 +27,36 @@ const getAllRooms = asyncHandler(async (req, res) => {
     // Add username to each room before sending the response 
     // See Promise.all with map() here: https://youtu.be/4lqJBBEpjRE 
     // You could also do this with a for...of loop
-    const roomsWithUser = await Promise.all(rooms.map(async (room) => {
-        const user = await User.findById(room.user).lean().exec()
-        return { ...room, username: user.username }
-    }))
+    // const roomsWithUser = await Promise.all(rooms.map(async (room) => {
+    //     const user = await User.findById(room.user).lean().exec()
+    //     return { ...room, username: user.username }
+    // }))
 
-    res.json(roomsWithUser)
+    res.json(rooms)
 })
 
 // @desc Create new room
 // @route POST /rooms
 // @access Private
 const createNewRoom = asyncHandler(async (req, res) => {
-    const { user, title, text } = req.body
+    const { roomName, datesOccupied, vacant } = req.body
 
     // Confirm data
-    if (!user || !title || !text) {
-        return res.status(400).json({ message: 'All fields are required' })
+    if (!roomName) {
+        return res.status(400).json({ message: 'Room name is required' })
     }
 
     // Check for duplicate title
-    const duplicate = await Room.findOne({ title }).lean().exec()
+    const duplicate = await Room.findOne({ roomName }).lean().exec()
 
     if (duplicate) {
-        return res.status(409).json({ message: 'Duplicate room title' })
+        return res.status(409).json({ message: 'Duplicate room' })
     }
 
-    // Create and store the new user 
-    const room = await Room.create({ user, title, text })
+    // Create and store the new room 
+    const newRoom = await Room.create({ roomName, datesOccupied, vacant })
 
-    if (room) { // Created 
+    if (newRoom) { // Created 
         return res.status(201).json({ message: 'New room created' })
     } else {
         return res.status(400).json({ message: 'Invalid room data received' })
@@ -58,11 +68,11 @@ const createNewRoom = asyncHandler(async (req, res) => {
 // @route PATCH /rooms
 // @access Private
 const updateRoom = asyncHandler(async (req, res) => {
-    const { id, user, title, text, completed } = req.body
+    const { id, roomName, datesOccupied, vacant } = req.body
 
     // Confirm data
-    if (!id || !user || !title || !text || typeof completed !== 'boolean') {
-        return res.status(400).json({ message: 'All fields are required' })
+    if (!id || !roomName || !datesOccupied || !vacant) {
+        return res.status(400).json({ message: 'All fields required' })
     }
 
     // Confirm room exists to update
@@ -73,21 +83,27 @@ const updateRoom = asyncHandler(async (req, res) => {
     }
 
     // Check for duplicate title
-    const duplicate = await Room.findOne({ title }).lean().exec()
+    const duplicate = await Room.findOne({ roomName }).lean().exec()
 
     // Allow renaming of the original room 
     if (duplicate && duplicate?._id.toString() !== id) {
-        return res.status(409).json({ message: 'Duplicate room title' })
+        return res.status(409).json({ message: 'Duplicate room' })
     }
 
-    room.user = user
-    room.title = title
-    room.text = text
-    room.completed = completed
+
+
+    //check for double booking
+    // if (Array.isArray(datesOccupied)) {
+    //     room.datesOccupied.push(...datesOccupied)
+    //     room.datesOccupied = removeDuplicateDates(room.datesOccupied)
+    // }
+    room.roomName = roomName
+    room.datesOccupied = datesOccupied
+    room.vacant = (vacant ? true : false)
 
     const updatedRoom = await room.save()
 
-    res.json(`'${updatedRoom.title}' updated`)
+    res.json(`'${updatedRoom.roomName}' updated`)
 })
 
 // @desc Delete a room
@@ -110,7 +126,7 @@ const deleteRoom = asyncHandler(async (req, res) => {
 
     const result = await room.deleteOne()
 
-    const reply = `Room '${result.title}' with ID ${result._id} deleted`
+    const reply = `Room '${result.roomName}' with ID ${result._id} deleted`
 
     res.json(reply)
 })

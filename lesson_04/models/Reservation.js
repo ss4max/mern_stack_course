@@ -18,17 +18,17 @@ const reservationSchema = new mongoose.Schema(
             type: Date,
             required: true
         },
-        checkedInDates: [{
+        checkOutDate: {
             type: Date,
             required: false
-        }],
+        },
         nights: {
             type: Number,
             required: true
         },
         room: {
             type: String,
-            required: true
+            required: true,
         },
         note: {
             type: String,
@@ -38,7 +38,6 @@ const reservationSchema = new mongoose.Schema(
             type: Boolean,
             default: true
         }
-
     }
 )
 
