@@ -39,7 +39,7 @@ const getAllRooms = asyncHandler(async (req, res) => {
 // @route POST /rooms
 // @access Private
 const createNewRoom = asyncHandler(async (req, res) => {
-    const { roomName, datesOccupied, vacant } = req.body
+    const { roomName, datesOccupied } = req.body
 
     // Confirm data
     if (!roomName) {
@@ -54,7 +54,7 @@ const createNewRoom = asyncHandler(async (req, res) => {
     }
 
     // Create and store the new room 
-    const newRoom = await Room.create({ roomName, datesOccupied, vacant })
+    const newRoom = await Room.create({ roomName, datesOccupied })
 
     if (newRoom) { // Created 
         return res.status(201).json({ message: 'New room created' })
@@ -68,10 +68,10 @@ const createNewRoom = asyncHandler(async (req, res) => {
 // @route PATCH /rooms
 // @access Private
 const updateRoom = asyncHandler(async (req, res) => {
-    const { id, roomName, datesOccupied, vacant } = req.body
+    const { id, roomName, datesOccupied } = req.body
 
     // Confirm data
-    if (!id || !roomName || !datesOccupied || !vacant) {
+    if (!id || !roomName || !datesOccupied) {
         return res.status(400).json({ message: 'All fields required' })
     }
 
@@ -99,7 +99,6 @@ const updateRoom = asyncHandler(async (req, res) => {
     // }
     room.roomName = roomName
     room.datesOccupied = datesOccupied
-    room.vacant = (vacant ? true : false)
 
     const updatedRoom = await room.save()
 

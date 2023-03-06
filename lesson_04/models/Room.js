@@ -10,11 +10,7 @@ const roomSchema = new mongoose.Schema(
         datesOccupied: [{
             type: Date,
             required: false
-        }],
-        vacant: {
-            type: Boolean,
-            default: true
-        }
+        }]
     }
 )
 

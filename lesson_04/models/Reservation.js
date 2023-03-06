@@ -33,10 +33,6 @@ const reservationSchema = new mongoose.Schema(
         note: {
             type: String,
             default: 'None'
-        },
-        active: {
-            type: Boolean,
-            default: true
         }
     }
 )

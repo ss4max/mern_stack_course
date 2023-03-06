@@ -11,10 +11,24 @@ function addDays(date, days) {
 
 function hasDate(dates, date) {
 
-    const found = dates.find(dateFound =>
-        dateFound.getTime() === date.getTime())
+    const found = dates.find(dateFound => {
+        console.log(dateFound.getTime() + " " + date.getTime())
+        return dateFound.getTime() === date.getTime()
+    }
+    )
 
     return found
+}
+
+function deleteDates(dates, deleteTheseDates) {
+
+    let filteredDates = dates
+
+    deleteTheseDates.forEach(deleteThisDate => {
+        filteredDates = filteredDates.filter(date => date !== deleteThisDate)
+    });
+
+    return filteredDates
 }
 
 // @desc Get all reservations
@@ -36,15 +50,12 @@ const getAllReservations = asyncHandler(async (req, res) => {
 // @route POST /reservation
 // @access Private
 const createNewReservation = asyncHandler(async (req, res) => {
-    const { name, adults, children, checkInDate, nights, room, note, active } = req.body
+    const { name, adults, children, checkInDate, nights, room, note } = req.body
 
     // Confirm data
     if (!name || !adults || !checkInDate || !nights || !room) {
         return res.status(400).json({ message: 'Name, adults, check in date, nights, and room name required.' })
     }
-
-    // Check for double booking
-    // const doubleBooked = await Reservation.findOne({ room }).lean().exec()
 
     let checkedInDates = [];
     for (let i = 0; i <= nights; i++) {
@@ -70,7 +81,7 @@ const createNewReservation = asyncHandler(async (req, res) => {
 
     const updatedRoom = await roomModel.save()
 
-    const reservationObject = { name, adults, children, checkInDate, checkOutDate, checkedInDates, nights, room, note, active }
+    const reservationObject = { name, adults, children, checkInDate, checkOutDate, checkedInDates, nights, room, note }
 
     // Create and store new reservation 
     const reservation = await Reservation.create(reservationObject)
@@ -86,47 +97,76 @@ const createNewReservation = asyncHandler(async (req, res) => {
 // @route PATCH /reservations
 // @access Private
 const updateReservation = asyncHandler(async (req, res) => {
-    const { id, name, adults, children, checkIn, nights, room, note, active } = req.body
+    const { id, name, adults, children, checkInDate, nights, room, note } = req.body
 
     // Confirm data 
     if (!id) {
         return res.status(400).json({ message: 'ID is required' })
     }
 
-    // Does the user exist to update?
+    // Does the reservation exist to update?
     const reservation = await Reservation.findById(id).exec()
 
     if (!reservation) {
         return res.status(400).json({ message: 'Reservation not found' })
     }
 
-    // // Check for duplicate 
-    // const duplicate = await Reservation.findOne({ username }).lean().exec()
+    let currentCheckedInDates = [];
 
-    // // Allow updates to the original user 
-    // if (duplicate && duplicate?._id.toString() !== id) {
-    //     return res.status(409).json({ message: 'Duplicate username' })
-    // }
+    for (let i = 0; i <= reservation.nights; i++) {
+        currentCheckedInDates.push(addDays(reservation.checkInDate, i))
+    }
 
-    const checkInDate = new Date(checkIn + "T014:00:00")
+    //Remove check out date
+    currentCheckedInDates.pop();
+
+    const roomModel = await Room.findOne({ roomName: room }).exec();
+
+    if (!roomModel) {
+        return res.status(400).json({ message: 'Room not found' })
+    }
+
+    //remove original dates
+    roomModel.datesOccupied = deleteDates(roomModel.datesOccupied, currentCheckedInDates)
+
+    console.log(roomModel.datesOccupied)
+
+    //new check in dates
+    let checkedInDates = [];
+    for (let i = 0; i <= nights; i++) {
+        checkedInDates.push(addDays(checkInDate, i))
+    }
+
+    //new check out date
+    const checkOutDate = checkedInDates.pop();
+
+    if (roomModel.datesOccupied.length > 0) {
+        checkedInDates.forEach(date => {
+
+            if (hasDate(roomModel.datesOccupied, date)) {
+                return res.status(409).json({ message: 'Double booked room' })
+            }
+        })
+    }
+
+    roomModel.datesOccupied.push(...checkedInDates)
+
+    const updatedRoom = await roomModel.save()
 
     reservation.name = name
     reservation.adults = adults
     reservation.children = children
     reservation.checkIn = checkInDate
+    reservation.checkOutDate = checkOutDate
     reservation.nights = nights
     reservation.room = room
     reservation.note = note
-    reservation.active = active
-
-    // if (password) {
-    //     // Hash password 
-    //     user.password = await bcrypt.hash(password, 10) // salt rounds 
-    // }
 
     const updatedReservation = await reservation.save()
 
-    res.json({ message: `${updatedReservation.name} updated` })
+    if (updatedReservation && updatedRoom) { //created 
+        res.json({ message: `${updatedReservation.name} updated` })
+    }
 })
 
 // @desc Delete a reservation
