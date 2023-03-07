@@ -9,13 +9,13 @@ function addDays(date, days) {
     return result;
 }
 
-function hasDate(dates, date) {
+function hasDate(occupiedDates, reservationDates) {
 
-    const found = dates.find(dateFound => {
-        console.log(dateFound.getTime() + " " + date.getTime())
-        return dateFound.getTime() === date.getTime()
-    }
-    )
+    let found = false
+
+    reservationDates.forEach(date => {
+        found = occupiedDates.find(occupiedDate => occupiedDate.getTime() === date.getTime())
+    });
 
     return found
 }
@@ -29,6 +29,16 @@ function deleteDates(dates, deleteTheseDates) {
     });
 
     return filteredDates
+}
+
+function createCheckedInDates(checkIn, checkOut) {
+    let dates = []
+    let newDate = new Date(checkIn)
+    while (checkIn.getTime() !== checkOut.getTime()) {
+        dates.push(newDate)
+        newDate = new Date(checkIn.setDate(checkIn.getDate() + 1))
+    }
+    return dates
 }
 
 // @desc Get all reservations
@@ -50,38 +60,34 @@ const getAllReservations = asyncHandler(async (req, res) => {
 // @route POST /reservation
 // @access Private
 const createNewReservation = asyncHandler(async (req, res) => {
-    const { name, adults, children, checkInDate, nights, room, note } = req.body
+    const { name, adults, children, checkInDate, checkOutDate, room, note } = req.body
 
     // Confirm data
-    if (!name || !adults || !checkInDate || !nights || !room) {
-        return res.status(400).json({ message: 'Name, adults, check in date, nights, and room name required.' })
+    if (!name || !adults || !checkInDate || !checkOutDate || !room) {
+        return res.status(400).json({ message: 'Name, adults, check in date, check out date, and room name required.' })
     }
 
-    let checkedInDates = [];
-    for (let i = 0; i <= nights; i++) {
-        checkedInDates.push(addDays(checkInDate, i))
-    }
+    const date1 = new Date(checkInDate)
+    const date2 = new Date(checkOutDate)
 
-    const checkOutDate = checkedInDates.pop();
+    let checkedInDates = createCheckedInDates(date1, date2);
+
+    // const checkOutDate = checkedInDates.pop();
     const roomModel = await Room.findOne({ roomName: room }).exec();
 
     if (!roomModel) {
         return res.status(400).json({ message: 'Room not found' })
     }
 
-    if (roomModel.datesOccupied.length > 0) {
-        checkedInDates.forEach(date => {
-            if (hasDate(roomModel.datesOccupied, date)) {
-                return res.status(409).json({ message: 'Double booked room' })
-            }
-        })
+    if (hasDate(roomModel.datesOccupied, checkedInDates)) {
+        return res.status(409).json({ message: 'Double booked room' })
     }
 
     roomModel.datesOccupied.push(...checkedInDates)
 
     const updatedRoom = await roomModel.save()
 
-    const reservationObject = { name, adults, children, checkInDate, checkOutDate, checkedInDates, nights, room, note }
+    const reservationObject = { name, adults, children, checkInDate, checkOutDate, room, note }
 
     // Create and store new reservation 
     const reservation = await Reservation.create(reservationObject)

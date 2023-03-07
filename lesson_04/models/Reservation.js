@@ -20,10 +20,6 @@ const reservationSchema = new mongoose.Schema(
         },
         checkOutDate: {
             type: Date,
-            required: false
-        },
-        nights: {
-            type: Number,
             required: true
         },
         room: {
