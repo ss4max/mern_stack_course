@@ -1,17 +1,6 @@
 const Room = require('../models/Room')
 const asyncHandler = require('express-async-handler')
 
-// function removeDuplicateDates(dates) {
-//     let removedDuplicates = dates
-//         .map(function (date) { return date.getTime() })
-//         .filter(function (date, i, array) {
-//             return array.indexOf(date) === i;
-//         })
-//         .map(function (time) { return new Date(time); });
-
-//     return removedDuplicates
-// }
-
 // @desc Get all rooms 
 // @route GET /rooms
 // @access Private
@@ -23,14 +12,6 @@ const getAllRooms = asyncHandler(async (req, res) => {
     if (!rooms?.length) {
         return res.status(400).json({ message: 'No rooms found' })
     }
-
-    // Add username to each room before sending the response 
-    // See Promise.all with map() here: https://youtu.be/4lqJBBEpjRE 
-    // You could also do this with a for...of loop
-    // const roomsWithUser = await Promise.all(rooms.map(async (room) => {
-    //     const user = await User.findById(room.user).lean().exec()
-    //     return { ...room, username: user.username }
-    // }))
 
     res.json(rooms)
 })
@@ -92,11 +73,6 @@ const updateRoom = asyncHandler(async (req, res) => {
 
 
 
-    //check for double booking
-    // if (Array.isArray(datesOccupied)) {
-    //     room.datesOccupied.push(...datesOccupied)
-    //     room.datesOccupied = removeDuplicateDates(room.datesOccupied)
-    // }
     room.roomName = roomName
     room.datesOccupied = datesOccupied
 
