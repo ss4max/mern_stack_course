@@ -11,13 +11,17 @@ function addDays(date, days) {
 
 function hasDate(occupiedDates, reservationDates) {
 
-    let found = false
+    let foundBoolean = false
 
     reservationDates.forEach(date => {
-        found = occupiedDates.find(occupiedDate => occupiedDate.getTime() === date.getTime())
+        let found = occupiedDates.find(occupiedDate => occupiedDate.getTime() === date.getTime())
+        if (found) {
+            console.log(found)
+            foundBoolean = true
+        }
     });
 
-    return found
+    return foundBoolean
 }
 
 function deleteDates(dates, deleteTheseDates) {
@@ -60,11 +64,11 @@ const getAllReservations = asyncHandler(async (req, res) => {
 // @route POST /reservation
 // @access Private
 const createNewReservation = asyncHandler(async (req, res) => {
-    const { name, adults, children, checkInDate, checkOutDate, room, note } = req.body
+    const { room, name, email, phone, howMany, checkInDate, checkOutDate, paymentStatus, paymentAmount, note } = req.body
 
     // Confirm data
-    if (!name || !adults || !checkInDate || !checkOutDate || !room) {
-        return res.status(400).json({ message: 'Name, adults, check in date, check out date, and room name required.' })
+    if (!room || !name || !email || !phone || !howMany || !checkInDate || !checkOutDate || !paymentStatus || !paymentAmount) {
+        return res.status(400).json({ message: 'All fields required.' })
     }
 
     const date1 = new Date(checkInDate)
@@ -87,7 +91,7 @@ const createNewReservation = asyncHandler(async (req, res) => {
 
     const updatedRoom = await roomModel.save()
 
-    const reservationObject = { name, adults, children, checkInDate, checkOutDate, room, note }
+    const reservationObject = { room, guest: { name, email, phone, howMany }, checkInDate, checkOutDate, paymentStatus, paymentAmount, note }
 
     // Create and store new reservation 
     const reservation = await Reservation.create(reservationObject)

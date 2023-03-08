@@ -2,17 +2,27 @@ const mongoose = require('mongoose')
 
 const reservationSchema = new mongoose.Schema(
     {
-        name: {
+        room: {
             type: String,
-            required: true,
-        },
-        adults: {
-            type: Number,
             required: true
         },
-        children: {
-            type: Number,
-            default: 0
+        guest: {
+            name: {
+                type: String,
+                required: true
+            },
+            email: {
+                type: String,
+                required: true
+            },
+            phone: {
+                type: String,
+                required: true
+            },
+            howMany: {
+                type: Number,
+                required: true
+            }
         },
         checkInDate: {
             type: Date,
@@ -22,9 +32,14 @@ const reservationSchema = new mongoose.Schema(
             type: Date,
             required: true
         },
-        room: {
+        paymentStatus: {
             type: String,
-            required: true,
+            enum: ['paid', 'pending', 'canceled'],
+            default: 'pending'
+        },
+        paymentAmount: {
+            type: Number,
+            required: true
         },
         note: {
             type: String,
