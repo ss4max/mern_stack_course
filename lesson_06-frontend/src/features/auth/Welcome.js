@@ -12,9 +12,9 @@ const Welcome = () => {
 
             <h1>Welcome!</h1>
 
-            <p><Link to="/dash/notes">View techNotes</Link></p>
+            <p><Link to="/dash/rooms">View rooms</Link></p>
 
-            <p><Link to="/dash/users">View User Settings</Link></p>
+            <p><Link to="/dash/reservations">View reservations</Link></p>
 
         </section>
     )

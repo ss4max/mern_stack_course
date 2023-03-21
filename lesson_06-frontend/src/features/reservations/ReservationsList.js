@@ -1,5 +1,5 @@
-import { useGetReservationQuery } from "./reservationApiSlice"
-import Room from './Room'
+import { useGetReservationsQuery } from "./reservationsApiSlice"
+import Room from '../rooms/Room'
 
 const ReservationList = () => {
 
@@ -9,7 +9,7 @@ const ReservationList = () => {
         isSuccess,
         isError,
         error
-    } = useGetReservationQuery()
+    } = useGetReservationsQuery()
 
     let content
 

@@ -1,5 +1,5 @@
-import { useGetRoomQuery } from "./roomApiSlice"
-import User from './User'
+import { useGetRoomsQuery } from "./roomsApiSlice"
+import Room from './Room'
 
 const RoomList = () => {
 
@@ -9,7 +9,7 @@ const RoomList = () => {
         isSuccess,
         isError,
         error
-    } = useGetRoomQuery()
+    } = useGetRoomsQuery()
 
     let content
 
@@ -24,16 +24,16 @@ const RoomList = () => {
         const { ids } = room
 
         const tableContent = ids?.length
-            ? ids.map(userId => <User key={userId} userId={userId} />)
+            ? ids.map(roomId => <Room key={roomId} roomId={roomId} />)
             : null
 
         content = (
             <table className="table table--room">
                 <thead className="table__thead">
                     <tr>
-                        <th scope="col" className="table__th user__username">Username</th>
-                        <th scope="col" className="table__th user__roles">Roles</th>
-                        <th scope="col" className="table__th user__edit">Edit</th>
+                        <th scope="col" className="table__th room__roomname">Roomname</th>
+                        <th scope="col" className="table__th room__roles">Roles</th>
+                        <th scope="col" className="table__th room__edit">Edit</th>
                     </tr>
                 </thead>
                 <tbody>

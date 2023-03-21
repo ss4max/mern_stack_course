@@ -13,14 +13,14 @@ const Room = ({ roomId }) => {
     if (room) {
         const handleEdit = () => navigate(`/dash/rooms/${roomId}`)
 
-        const roomRolesString = room.roles.toString().replaceAll(',', ', ')
+        const roomDatesString = room.datesOccupied.toString().replaceAll(',', ', ')
 
         const cellStatus = room.active ? '' : 'table__cell--inactive'
 
         return (
             <tr className="table__row room">
-                <td className={`table__cell ${cellStatus}`}>{room.roomname}</td>
-                <td className={`table__cell ${cellStatus}`}>{roomRolesString}</td>
+                <td className={`table__cell ${cellStatus}`}>{room.roomName}</td>
+                <td className={`table__cell ${cellStatus}`}>{roomDatesString}</td>
                 <td className={`table__cell ${cellStatus}`}>
                     <button
                         className="icon-button table__button"
