@@ -15,10 +15,12 @@ const Reservation = ({ reservationId }) => {
 
         const cellStatus = reservation.active ? '' : 'table__cell--inactive'
 
+        const formatCheckInDate = new Date(reservation.checkInDate).toLocaleString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+
         return (
             <tr className="table__row reservation">
-                <td className={`table__cell ${cellStatus}`}>{reservation.name}</td>
-                <td className={`table__cell ${cellStatus}`}>{reservation.checkIn}</td>
+                <td className={`table__cell ${cellStatus}`}>{reservation.guest.name}</td>
+                <td className={`table__cell ${cellStatus}`}>{formatCheckInDate}</td>
                 <td className={`table__cell ${cellStatus}`}>
                     <button
                         className="icon-button table__button"

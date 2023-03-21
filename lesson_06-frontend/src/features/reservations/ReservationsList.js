@@ -1,5 +1,5 @@
 import { useGetReservationsQuery } from "./reservationsApiSlice"
-import Room from '../rooms/Room'
+import Reservation from '../reservations/Reservation'
 
 const ReservationList = () => {
 
@@ -24,16 +24,16 @@ const ReservationList = () => {
         const { ids } = reservation
 
         const tableContent = ids?.length
-            ? ids.map(roomId => <Room key={roomId} roomId={roomId} />)
+            ? ids.map(reservationId => <Reservation key={reservationId} reservationId={reservationId} />)
             : null
 
         content = (
             <table className="table table--reservation">
                 <thead className="table__thead">
                     <tr>
-                        <th scope="col" className="table__th room__roomname">Roomname</th>
-                        <th scope="col" className="table__th room__roles">Roles</th>
-                        <th scope="col" className="table__th room__edit">Edit</th>
+                        <th scope="col" className="table__th reservation__reservationname">Reservation Name</th>
+                        <th scope="col" className="table__th reservation__roles">Check In Date</th>
+                        <th scope="col" className="table__th reservation__edit">Edit</th>
                     </tr>
                 </thead>
                 <tbody>

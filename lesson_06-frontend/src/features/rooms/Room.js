@@ -13,9 +13,14 @@ const Room = ({ roomId }) => {
     if (room) {
         const handleEdit = () => navigate(`/dash/rooms/${roomId}`)
 
-        const roomDatesString = room.datesOccupied.toString().replaceAll(',', ', ')
 
         const cellStatus = room.active ? '' : 'table__cell--inactive'
+
+        const dates = room.datesOccupied?.length
+            ? room.datesOccupied.map(date => new Date(date).toLocaleString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }))
+            : null
+
+        const roomDatesString = dates.toString().replaceAll(',', ', ')
 
         return (
             <tr className="table__row room">
